@@ -1,0 +1,108 @@
+.card {
+  background: #d9eeeb;
+  color: black;
+  border-radius: 20px;
+  padding: 24px 20px 16px;
+  font-family: sans-serif;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  margin: 0 0 12px;
+  color: #2e6b65;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #aed4cf;
+  margin: 0 0 16px;
+}
+
+.empty {
+  color: #7ab8b2;
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* pushes total to the bottom */
+.entries {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+
+
+.entryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  
+}
+
+.icon {
+  display: flex;
+  font-size: 28px;
+  min-width: 36px;
+  text-align: left;
+}
+
+.labels {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.subtype {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2e6b65;
+  text-transform: capitalize;
+}
+
+.quantity {
+  font-size: 13px;
+  color: #4a8a84;
+}
+
+.carbon {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2e6b65;
+  line-height: 1;
+}
+
+.unit {
+  font-size: 13px;
+  color: #4a8a84;
+}
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #aed4cf;
+  padding-top: 12px;
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2e6b65;
+}

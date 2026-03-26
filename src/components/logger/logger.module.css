@@ -1,0 +1,15 @@
+.container {
+  display: flex;
+  gap: 16px;
+  height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.entry {
+  flex: 7;
+}
+
+.display {
+  flex: 3;
+}

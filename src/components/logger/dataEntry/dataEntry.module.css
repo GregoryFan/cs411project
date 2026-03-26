@@ -1,0 +1,180 @@
+
+.card {
+  background: #d9eeeb;
+  color: black;
+  border-radius: 20px;
+  padding: 24px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  font-family: sans-serif;
+  height: 100%;
+  overflow: hidden;
+}
+
+.rows {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 16px 12px;
+  position: relative;
+}
+
+.divider {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #aed4cf;
+}
+
+.icon {
+  flex: 15;
+  text-align: center;
+}
+
+.pill {
+  flex: 25;
+  background: #b2d8d3;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 110px;
+  text-align: center;
+  margin: 0 6px;
+}
+
+.pill.placeholder {
+  color: #9bbfbb;
+}
+
+.quantityWrap {
+  flex: 25;
+  background: #b2d8d3;
+  border-radius: 999px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  gap: 4px;
+  min-width: 90px;
+}
+
+.quantityInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  width: 40px;
+  text-align: left;
+}
+
+.unit {
+  font-size: 13px;
+  color: #4a8a84;
+}
+
+.removeBtn {
+  background: #7ab8b2;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin: 0 6;
+}
+
+.addWrap {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.addBtn {
+  background: #7ab8b2;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.submitWrap {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.submitBtn {
+  background: #4a9e97;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 28px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.quantityInput::-webkit-outer-spin-button,
+.quantityInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantityInput[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.header {
+  padding: 0 12px 12px;
+  border-bottom: 1px solid #aed4cf;
+  margin-bottom: 8px;
+}
+
+.headerLabel {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2e6b65;
+}
+
+.dateInput {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid #7ab8b2;
+  font-size: 18px;
+  font-weight: 700;
+  color: #2e6b65;
+  cursor: pointer;
+  outline: none;
+  padding: 0 4px;
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
