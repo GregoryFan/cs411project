@@ -1,0 +1,39 @@
+.container {
+  min-height: calc(100vh - 72px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #2f6f68;
+}
+
+.card {
+  background: #d9eeeb;
+  padding: 40px;
+  border-radius: 16px;
+  text-align: center;
+  width: 400px;
+  color: black;
+}
+
+.buttons {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.button {
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #2e6b65;
+  color: white;
+  text-decoration: none;
+}
+
+.buttonAlt {
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #cfe7e3;
+  color: #2e6b65;
+  text-decoration: none;
+}

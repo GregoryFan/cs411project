@@ -32,7 +32,6 @@
   margin-top: 16px;
 }
 
-/* pushes total to the bottom */
 .entries {
   flex: 1;
   display: flex;

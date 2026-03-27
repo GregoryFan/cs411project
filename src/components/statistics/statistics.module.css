@@ -1,0 +1,124 @@
+.container {
+  min-height: calc(100vh - 72px);
+  background: #2f6f68;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 1400px;
+  background: #d9eeeb;
+  border-radius: 16px;
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px; 
+}
+
+.left {
+  width: 100%;
+}
+
+.left h3 {
+  margin-bottom: 8px;
+  color: #2e6b65;
+  font-size: 16px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px; 
+}
+
+.controls button {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: none;
+  background: #4a9e97;
+  color: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.controls button:hover {
+  background: #3d8b85;
+}
+
+.active {
+  background: #2e6b65 !important;
+}
+
+.datePicker {
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #2e6b65;
+  background: white;
+  color: #333;
+  font-size: 13px;
+}
+
+.datePicker::-webkit-datetime-edit {
+  color: #333;
+}
+
+.chart {
+  width: 100%;
+  height: 220px; 
+  padding: 10px 10px 10px 20px;
+
+  border-left: 2px solid #333;
+  border-bottom: 2px solid #333;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.right {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-end;
+  text-align: left;
+
+  padding-right: 40px; 
+}
+
+.right h2 {
+  color: #2e6b65;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.right p {
+  margin: 3px 0;
+  color: #333;
+  font-size: 14px;
+}
+
+.returnButton {
+  margin-top: 16px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  background: #4a9e97;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  width: 260px;
+  transition: 0.2s;
+}
+
+.returnButton:hover {
+  background: #3d8b85;
+}
