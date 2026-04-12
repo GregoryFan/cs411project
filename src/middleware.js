@@ -22,7 +22,10 @@ export async function middleware(request) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // If not logged in and trying to access a protected route, redirect to login
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!user && (
+  request.nextUrl.pathname === '/' ||
+  request.nextUrl.pathname.startsWith('/dashboard')
+  )){
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
