@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                 String          @id @default(uuid())
+  userName           String
+  email              String          @unique
+  totalCarbonBalance Float           @default(0)
+  activityEntries    ActivityEntry[]
+  createdAt          DateTime        @default(now())
+}
+
+model ActivityEntry {
+  id           Int        @id @default(autoincrement())
+  date         DateTime   @default(now())
+  totalDayCO2  Float      @default(0)
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  activities   Activity[]
+}
+
+model Activity {
+  id              Int           @id @default(autoincrement())
+  carbonImpact    Float
+  type            String        
+  activityEntryId Int
+  activityEntry   ActivityEntry @relation(fields: [activityEntryId], references: [id])
+
+  // Food fields
+  foodType        String?
+  foodQuantity    Float?
+
+  // Transportation fields
+  transportMode   String?
+  distance        Float?
+
+  // Utility fields
+  utilityType     String?
+  consumptionValue Float?
+}
