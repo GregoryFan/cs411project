@@ -9,7 +9,7 @@ datasource db {
 }
 
 model User {
-  id                 String          @id @default(uuid())
+  id                 String          @id @db.Uuid
   userName           String
   email              String          @unique
   totalCarbonBalance Float           @default(0)
@@ -21,7 +21,7 @@ model ActivityEntry {
   id           Int        @id @default(autoincrement())
   date         DateTime   @default(now())
   totalDayCO2  Float      @default(0)
-  userId       String
+  userId       String     @db.Uuid
   user         User       @relation(fields: [userId], references: [id])
   activities   Activity[]
 }
