@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ActivityEntry } from "@/classes/activityEntry";
 import {ACTIVITY_CONFIG} from "../activityConfig";
 import styles from "./dataEntry.module.css"
+import { dbActivitiesToRows } from "../dbActivitiesToRows";
 
 
 
@@ -76,102 +77,132 @@ const ACTIVITY_TYPES = Object.keys(ACTIVITY_CONFIG);
 // Data Entry allows users to input activities, 
 // and on submit, will submit all their data to the database, and
 // also inform the logger to display the data on the dataDisplay.
-export default function DataEntry({onSubmit}){
+export default function DataEntry({ 
+  date, 
+  onDateChange, 
+  initialEntry, 
+  onSubmit,
+   userId,
+   loading
+   }) {
 
-    //List of all existing rows
-    const [rows, setRows] = useState([{ id: 0, type: "", subtype: "", quantity: "" }]);
-    const [nextId, setNextId] = useState(1);
-    
-    //Date of entry, can be set
-    const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const initialRows = initialEntry?.activities?.length
+    ? dbActivitiesToRows(initialEntry.activities)
+    : [{ id: 0, type: "", subtype: "", quantity: "" }];
 
-    //modifying existing rows
-    const updateRow = (updatedRow) => {
-        //updates row based on id, should be unique so only one row changes
-        setRows(rows.map(r => r.id === updatedRow.id ? updatedRow : r));
-    };
-    const addRow = () => {
-        //adds a new row with a unique id, setting default values for input
-        setRows([...rows, { id: nextId, type: "", subtype: "", quantity: "" }]);
-        setNextId(nextId + 1);
-    }
-    const removeRow = (rowId) => {
-        //filters out row with the same id as the one removed
-        setRows(rows.filter(r => r.id !== rowId));
-    }
+  const [rows, setRows] = useState(initialRows);
+  const [nextId, setNextId] = useState(initialRows.length);
+  const [submitted, setSubmitted] = useState(!!initialEntry?.activities?.length);
 
-    //collects all rows, builds into activities, then creates an ActivityEntry and submits that
-    // to the database.
-    const handleSubmit = () => {
-        const activities = [];
+  const updateRow = (updatedRow) => setRows(rows.map(r => r.id === updatedRow.id ? updatedRow : r));
+  const addRow = () => { setRows([...rows, { id: nextId, type: "", subtype: "", quantity: "" }]); setNextId(nextId + 1); };
+  const removeRow = (rowId) => setRows(rows.filter(r => r.id !== rowId));
 
-        //going through each row
-        for (const row of rows) {
-            //If any of the fields are empty, alert the user and stop submission
-            if (!row.type || !row.subtype || !row.quantity) {
-                alert("Please fill out all fields before submitting.");
-                return;
+  const handleSubmit = async () => {
+  const activities = [];
+  const activityRows = [];
+
+  for (const row of rows) {
+        if (!row.type || !row.subtype || !row.quantity) {
+            alert("Please fill out all fields before submitting.");
+            return;
             }
-
-            //builds the activity using the config table.
             const config = ACTIVITY_CONFIG[row.type];
-            activities.push(config.build(row.subtype, parseFloat(row.quantity)));
+            const built = config.build(row.subtype, parseFloat(row.quantity));
+            activities.push(built);
+            activityRows.push(row);
         }
-        
-        //Build the activityEntry for the date.
-        const entry = new ActivityEntry(activities, new Date(date));
 
-        //TODO: Integrate with Database.
-        //For now, just alert what is going to be submitted.
-        alert(
-        `Submitting entry:\n` +
-        activities.map((a, i) => `  ${rows[i].type}: ${rows[i].subtype}, ${rows[i].quantity}`).join("\n") +
-        `\nTotal carbon impact: ${entry.totalCarbonImpact}`
-        );
+        // Map each built activity into the shape your API/schema expects
+        const payload = {
+            userId,
+            date,
+            activities: activities.map((a, i) => {
+            const row = activityRows[i];
+            const base = { carbonImpact: a.carbonImpact, type: row.type };
 
-        //Passes it back up for the logger to display
-        onSubmit({ entry, rows });
-    }
+            if (row.type === "Food")           return { ...base, foodType: row.subtype,      foodQuantity: parseFloat(row.quantity) };
+            if (row.type === "Transportation") return { ...base, transportMode: row.subtype, distance: parseFloat(row.quantity) };
+            if (row.type === "Utility")        return { ...base, utilityType: row.subtype,   consumptionValue: parseFloat(row.quantity) };
+            return base;
+            })
+        };
 
-    return (
+        const res = await fetch("/api/activity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+            alert("Failed to save entry.");
+            return;
+        }
+
+        const saved = await res.json();
+        setSubmitted(true);
+        onSubmit({ entry: saved, rows });
+    };
+
+  return (
     <>
-        <div className={styles.card}>
-            {/*Header with date input*/}
-            <div className={styles.header}>
-                <label className={styles.headerLabel}>
-                    Activities for{" "}
-                    <input
-                    className={styles.dateInput}
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    />
-                </label>
-            </div>
-
-            {/*Displays Rows*/}
-            <div className={styles.rows}>
-                {rows.map((row) => (
-                    <ActivityRow
-                        key={row.id}
-                        row={row}
-                        onChange={updated => updateRow(updated)}
-                        onRemove={() => removeRow(row.id)}
-                    />
-                ))}
-            </div>
-
-            {/*Add Button*/}
-            <div className={styles.addWrap}>
-                <button className={styles.addBtn} onClick={addRow} aria-label="Add activity"> + </button>
-            </div>
-
-            {/*Submit Button*/}
-            <div className={styles.submitWrap}>
-                <button className={styles.submitBtn} onClick={handleSubmit}>Submit</button>
-            </div>
-
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <label className={styles.headerLabel}>
+            Activities for{" "}
+            <input
+              className={styles.dateInput}
+              type="date"
+              value={date}
+              onChange={(e) => onDateChange(e.target.value)}  // tells Logger to re-fetch
+            />
+          </label>
         </div>
+
+       {loading ? (
+    <div className={styles.loadingState}>
+    <div className={styles.loadingSpinner}></div>
+    <span className={styles.loadingText}>Loading activities...</span>
+  </div>
+) : (
+  <>
+    <div className={styles.rows}>
+      {rows.map((row) => (
+        <ActivityRow
+          key={row.id}
+          row={row}
+          onChange={updated => updateRow(updated)}
+          onRemove={() => removeRow(row.id)}
+        />
+      ))}
+    </div>
+
+    <div className={styles.addWrap}>
+      <button
+        className={styles.addBtn}
+        onClick={addRow}
+        aria-label="Add activity"
+      >
+        +
+      </button>
+    </div>
+
+    <div className={styles.submitWrap}>
+      <button
+        className={styles.submitBtn}
+        onClick={handleSubmit}
+        disabled={submitted}
+        style={{
+          opacity: submitted ? 0.5 : 1,
+          cursor: submitted ? "not-allowed" : "pointer"
+        }}
+      >
+        {submitted ? "Submitted" : "Submit"}
+      </button>
+    </div>
     </>
-    );
+      )}
+  </div>
+    </>
+  );
 }

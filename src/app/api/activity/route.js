@@ -3,120 +3,133 @@ import { NextResponse } from 'next/server'
 
 const prisma = new PrismaClient()
 
-//create a new activity
+// POST: create a new activity entry for a user
 export async function POST(req) {
-  const { type, subcategory, quantity } = await req.json()
+  const { userId, date, activities } = await req.json()
 
-  const report = await prisma.activityReport.create({
+  const entry = await prisma.activityEntry.create({
     data: {
-      date: new Date(),
+      date: new Date(date),
+      totalDayCO2: activities.reduce((sum, a) => sum + a.carbonImpact, 0),
+      userId,
       activities: {
-        create: {
-          type,
-          subcategory,
-          quantity,
-        }
+        create: activities.map(a => ({
+          carbonImpact: a.carbonImpact,
+          type: a.type,
+          foodType: a.foodType ?? null,
+          foodQuantity: a.foodQuantity ?? null,
+          transportMode: a.transportMode ?? null,
+          distance: a.distance ?? null,
+          utilityType: a.utilityType ?? null,
+          consumptionValue: a.consumptionValue ?? null,
+        }))
       }
     },
-    include: {
-      activities: true
-    }
+    include: { activities: true }
   })
 
-  return NextResponse.json(report, { status: 201 })
+  return NextResponse.json(entry, { status: 201 })
 }
 
-//get data based on day/month/week etc, used for both bringing up old information and statistics
+// GET: fetch entry for a specific date (or range)
 export async function GET(req) {
   const { searchParams } = new URL(req.url)
-  const range = searchParams.get('range')
+  const userId = searchParams.get('userId')
+  const date = searchParams.get('date')   // e.g. "2026-04-16"
+  const range = searchParams.get('range') // e.g. "week", "month"
+
+  if (!userId) return NextResponse.json({ error: 'userId is required' }, { status: 400 })
 
   const now = new Date()
-  let startDate
+  let startDate, endDate
 
-  if (range === 'day') {
-    startDate = new Date(now)
+  if (date) {
+    // specific date — used for loading a day's entry
+    startDate = new Date(date)
     startDate.setHours(0, 0, 0, 0)
+    endDate = new Date(date)
+    endDate.setHours(23, 59, 59, 999)
   } else if (range === 'week') {
-    startDate = new Date(now)
-    startDate.setDate(now.getDate() - 7)
+    startDate = new Date(now); startDate.setDate(now.getDate() - 7); endDate = now
   } else if (range === 'month') {
-    startDate = new Date(now)
-    startDate.setMonth(now.getMonth() - 1)
+    startDate = new Date(now); startDate.setMonth(now.getMonth() - 1); endDate = now
   } else if (range === 'year') {
-    startDate = new Date(now)
-    startDate.setFullYear(now.getFullYear() - 1)
+    startDate = new Date(now); startDate.setFullYear(now.getFullYear() - 1); endDate = now
   } else {
-    return NextResponse.json({ error: 'Invalid range. Use day, week, month or year' }, { status: 400 })
+    return NextResponse.json({ error: 'Provide a date or range' }, { status: 400 })
   }
 
-  const reports = await prisma.activityReport.findMany({
-    where: {
-      date: {
-        gte: startDate,
-        lte: now,
-      }
-    },
-    include: {
-      activities: true
-    },
-    orderBy: {
-      date: 'desc'
-    }
+  const entries = await prisma.activityEntry.findMany({
+    where: { userId, date: { gte: startDate, lte: endDate } },
+    include: { activities: true },
+    orderBy: { date: 'desc' }
   })
 
-  return NextResponse.json(reports, { status: 200 })
+  return NextResponse.json(entries, { status: 200 })
 }
 
-//put request for updating old information, and adding new reports 
+// PUT: update an existing entry (edit or add activities)
 export async function PUT(req) {
-  const { reportId, activities } = await req.json()
+  const { entryId, activities } = await req.json()
 
-  if (!reportId || !activities) {
-    return NextResponse.json({ error: 'reportId and activities are required' }, { status: 400 })
+  if (!entryId || !activities) {
+    return NextResponse.json({ error: 'entryId and activities are required' }, { status: 400 })
   }
 
-  //activites are handled differntly on whether they exist or not
   const existing = activities.filter(a => a.id)
   const newOnes = activities.filter(a => !a.id)
 
-  //update existing entries
   const updatePromises = existing.map(a =>
     prisma.activity.update({
       where: { id: a.id },
       data: {
+        carbonImpact: a.carbonImpact,
         type: a.type,
-        subcategory: a.subcategory,
-        quantity: a.quantity,
+        foodType: a.foodType ?? null,
+        foodQuantity: a.foodQuantity ?? null,
+        transportMode: a.transportMode ?? null,
+        distance: a.distance ?? null,
+        utilityType: a.utilityType ?? null,
+        consumptionValue: a.consumptionValue ?? null,
       }
     })
   )
 
-  //add new entries
   const createPromise = newOnes.length > 0
-    ? prisma.activityReport.update({
-        where: { id: reportId },
+    ? prisma.activityEntry.update({
+        where: { id: entryId },
         data: {
           activities: {
             create: newOnes.map(a => ({
+              carbonImpact: a.carbonImpact,
               type: a.type,
-              subcategory: a.subcategory,
-              quantity: a.quantity,
+              foodType: a.foodType ?? null,
+              foodQuantity: a.foodQuantity ?? null,
+              transportMode: a.transportMode ?? null,
+              distance: a.distance ?? null,
+              utilityType: a.utilityType ?? null,
+              consumptionValue: a.consumptionValue ?? null,
             }))
           }
         },
         include: { activities: true }
       })
     : null
-  
-    //update the final report
+
   await Promise.all(updatePromises)
-  const report = createPromise
+
+  const entry = createPromise
     ? await createPromise
-    : await prisma.activityReport.findUnique({
-        where: { id: reportId },
+    : await prisma.activityEntry.findUnique({
+        where: { id: entryId },
         include: { activities: true }
       })
 
-  return NextResponse.json(report, { status: 200 })
+  // recalculate totalDayCO2
+  await prisma.activityEntry.update({
+    where: { id: entryId },
+    data: { totalDayCO2: entry.activities.reduce((sum, a) => sum + a.carbonImpact, 0) }
+  })
+
+  return NextResponse.json(entry, { status: 200 })
 }

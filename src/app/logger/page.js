@@ -1,26 +1,35 @@
 "use client";
-
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/app/lib/supabase/client";
 import Header from "@/components/header/header";
 import Logger from "@/components/logger/logger";
 
 export default function Home() {
   const router = useRouter();
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    console.log("LOGIN CLICKED");
-    const loggedIn = localStorage.getItem("loggedIn");
+  const supabase = createClient(); 
+  
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    console.log("session:", session);
+    console.log("userId:", session?.user?.id);
+    
+    if (!session) {
+          router.push("/auth");
+        } else {
+          setUserId(session.user.id);
+        }
+      });
+    }, []);
 
-    if (!loggedIn) {
-      router.push("/auth"); 
-    }
-  }, []);
+  if (!userId) return null; 
 
   return (
     <>
       <Header />
-      <Logger />
+      <Logger userId={userId} />
     </>
   );
 }
