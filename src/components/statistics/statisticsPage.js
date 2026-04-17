@@ -2,7 +2,7 @@
 
 import Header from "@/components/header/header";
 import styles from "./statistics.module.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -15,61 +15,82 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+  const userId = "39dcd990-0a0c-4a02-a3ca-31e9aabacea1";
+
 export default function StatisticsPage() {
   const router = useRouter();
 
   const [range, setRange] = useState("week");
   const [selectedTime, setSelectedTime] = useState("");
+  const [rawData, setRawData] = useState([]);
 
-  // 📊 Different datasets for each range
-  const weeklyData = [
-    { date: "Mon", co2: 30 },
-    { date: "Tue", co2: 50 },
-    { date: "Wed", co2: 40 },
-    { date: "Thu", co2: 60 },
-    { date: "Fri", co2: 20 },
-    { date: "Sat", co2: 10 },
-    { date: "Sun", co2: 0 },
-  ];
 
-  const monthlyData = [
-    { date: "Week 1", co2: 200 },
-    { date: "Week 2", co2: 250 },
-    { date: "Week 3", co2: 300 },
-    { date: "Week 4", co2: 310 },
-  ];
+  // Fetching Data from API
+  useEffect(() => {
+    const fetchData = async () => {
+      const res = await fetch(
+        `/api/activity?userId=${userId}&range=${range}`
+      );
+      const data = await res.json();
+      setRawData(data);
+    };
 
-  const yearlyData = [
-    { date: "Jan", co2: 900 },
-    { date: "Feb", co2: 850 },
-    { date: "Mar", co2: 1000 },
-    { date: "Apr", co2: 1100 },
-    { date: "May", co2: 950 },
-    { date: "Jun", co2: 1200 },
-  ];
+    fetchData();
+  }, [range, userId]);
 
-  let data = weeklyData;
-  let total = 210;
-  let highest = 50;
-  let lowest = 10;
-  let percent = 15;
-  let message = "lower";
+  // Generating the chart data.  
+  function generateData(range, rawData) {
+    const result = [];
 
-  if (range === "month") {
-    data = monthlyData;
-    total = 1060;
-    highest = 250;
-    lowest = 180;
-    percent = 8;
-    message = "higher";
-  } else if (range === "year") {
-    data = yearlyData;
-    total = 10900;
-    highest = 3000;
-    lowest = 2500;
-    percent = 12;
-    message = "lower";
+    if (range === "week") {
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+      days.forEach((d) => result.push({ date: d, co2: 0 }));
+
+      rawData.forEach((item) => {
+        const d = new Date(item.date);
+        const index = (d.getDay() + 6) % 7; // Monday = 0
+        result[index].co2 = item.totalDayCO2;
+      });
+    }
+
+    if (range === "month") {
+      const daysInMonth = new Date().getDate(); // current day
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        result.push({ date: `${i}`, co2: 0 });
+      }
+
+      rawData.forEach((item) => {
+        const d = new Date(item.date);
+        const day = d.getDate();
+        result[day - 1].co2 = item.totalDayCO2;
+      });
+    }
+
+    if (range === "year") {
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      months.forEach((m) => result.push({ date: m, co2: 0 }));
+
+      rawData.forEach((item) => {
+        const d = new Date(item.date);
+        const month = d.getMonth();
+        result[month].co2 += item.totalDayCO2;
+      });
+    }
+
+    return result;
   }
+
+  const data = generateData(range, rawData);
+
+  // Creating the Sumamry portion
+  const values = rawData.map((d) => d.totalDayCO2);
+  const total = values.reduce((a, b) => a + b, 0);
+  const highest = values.length ? Math.max(...values) : 0;
+  const lowest = values.length ? Math.min(...values) : 0;
 
   return (
     <>
@@ -78,7 +99,6 @@ export default function StatisticsPage() {
       <div className={styles.container}>
         <div className={styles.card}>
 
-          {/* LEFT SIDE */}
           <div className={styles.left}>
             <h3>Carbon Emission Makeup</h3>
 
@@ -112,15 +132,12 @@ export default function StatisticsPage() {
               onChange={(e) => setSelectedTime(e.target.value)}
             />
 
-            {/* 📈 LINE CHART */}
             <div className={styles.chart}>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
                   <CartesianGrid strokeDasharray="3 3" />
-
                   <XAxis dataKey="date" />
                   <YAxis />
-
                   <Tooltip />
 
                   <Line
@@ -135,22 +152,12 @@ export default function StatisticsPage() {
             </div>
           </div>
 
-          {/* RIGHT SIDE */}
           <div className={styles.right}>
             <h2>Summary</h2>
 
             <p><strong>Total:</strong> {total} kg CO₂</p>
             <p><strong>Highest:</strong> {highest} kg</p>
             <p><strong>Lowest:</strong> {lowest} kg</p>
-
-            <p>
-              This {range}, you were{" "}
-              <strong style={{ color: message === "lower" ? "green" : "red" }}>
-                {percent}%
-              </strong>{" "}
-              {message} than your average.
-              {message === "lower" ? " Good job!" : " Try to reduce emissions!"}
-            </p>
 
             <button
               className={styles.returnButton}
