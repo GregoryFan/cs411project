@@ -39,7 +39,6 @@ export default function Logger({ userId }) {
     <div className={styles.container}>
       <div className={styles.entry}>
         <DataEntry
-          key={date}
           date={date}
           onDateChange={setDate}
           initialEntry={initialEntry}
