@@ -171,10 +171,6 @@ export default function DataEntry({
         // update UI state
         onSubmit({ entry: saved, rows });
 
-        // redirect after short delay
-        setTimeout(() => {
-          router.push("/statistics");
-        }, 1500);
     };
 
   return (
