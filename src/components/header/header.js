@@ -7,22 +7,27 @@ import { createClient } from "@/app/lib/supabase/client";
 
 export default function Header() {
   const router = useRouter();
+
   const [user, setUser] = useState(null);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     const supabase = createClient();
 
-    //get current user on load
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    const loadUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+
       setUser(user);
-    });
 
-    //listen for auth changes (login/logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+      if (user) {
+        const res = await fetch(`/api/user?userId=${user.id}`);
+        const data = await res.json();
 
-    return () => subscription.unsubscribe();
+        setUserName(data?.userName ?? "");
+      }
+    };
+
+    loadUser();
   }, []);
 
   const handleLogout = async () => {
@@ -33,15 +38,30 @@ export default function Header() {
 
   return (
     <nav className={styles.nav}>
-      <span className={styles.brand}>Carbon Tracker</span>
+      <div>
+        <div className={styles.brand}>Carbon Tracker</div>
+
+        {userName && (
+          <div className={styles.subHeader}>
+            Welcome, {userName}
+          </div>
+        )}
+      </div>
+
       <div className={styles.links}>
         <Link className={styles.link} href="/">Record Activity</Link>
         <Link className={styles.link} href="/statistics">Statistics</Link>
         <Link className={styles.link} href="/compare">Compare</Link>
-        {user
-          ? <button className={styles.link} onClick={handleLogout}>Logout</button>
-          : <Link className={styles.link} href="/login">Login</Link>
-        }
+
+        {user ? (
+          <button className={styles.link} onClick={handleLogout}>
+            Logout
+          </button>
+        ) : (
+          <Link className={styles.link} href="/login">
+            Login
+          </Link>
+        )}
       </div>
     </nav>
   );
