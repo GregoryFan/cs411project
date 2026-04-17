@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ActivityEntry } from "@/classes/activityEntry";
 import {ACTIVITY_CONFIG} from "../activityConfig";
 import styles from "./dataEntry.module.css"
@@ -93,7 +94,9 @@ export default function DataEntry({
   const [rows, setRows] = useState(initialRows);
   const [nextId, setNextId] = useState(initialRows.length);
   const [submitted, setSubmitted] = useState(!!initialEntry?.activities?.length);
-
+  const router = useRouter();
+  const [successMessage, setSuccessMessage] = useState("");
+  
   const updateRow = (updatedRow) => setRows(rows.map(r => r.id === updatedRow.id ? updatedRow : r));
   const addRow = () => { setRows([...rows, { id: nextId, type: "", subtype: "", quantity: "" }]); setNextId(nextId + 1); };
   const removeRow = (rowId) => setRows(rows.filter(r => r.id !== rowId));
@@ -107,11 +110,18 @@ export default function DataEntry({
             alert("Please fill out all fields before submitting.");
             return;
             }
+        if (isNaN(parseFloat(row.quantity)) || parseFloat(row.quantity) <= 0) {
+            setFormError("Quantity must be a valid positive number.");
+            return;
+        }   
             const config = ACTIVITY_CONFIG[row.type];
             const built = config.build(row.subtype, parseFloat(row.quantity));
             activities.push(built);
             activityRows.push(row);
+
+
         }
+   
 
         // Map each built activity into the shape your API/schema expects
         const payload = {
@@ -141,7 +151,17 @@ export default function DataEntry({
 
         const saved = await res.json();
         setSubmitted(true);
+
+        // show confirmation message with calculation
+        setSuccessMessage("Entry saved successfully. Redirecting...");
+
+        // update UI state
         onSubmit({ entry: saved, rows });
+
+        // redirect after short delay
+        setTimeout(() => {
+          router.push("/statistics");
+        }, 1500);
     };
 
   return (
@@ -166,6 +186,14 @@ export default function DataEntry({
   </div>
 ) : (
   <>
+    {successMessage && (
+      <p style={{ color: "green", marginBottom: "0.75rem" }}>
+        {successMessage}
+      </p>
+    )}
+    
+    
+    
     <div className={styles.rows}>
       {rows.map((row) => (
         <ActivityRow
