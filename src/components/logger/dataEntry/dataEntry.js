@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityEntry } from "@/classes/activityEntry";
 import {ACTIVITY_CONFIG} from "../activityConfig";
 import styles from "./dataEntry.module.css"
@@ -86,13 +86,23 @@ export default function DataEntry({
    loading
    }) {
 
-  const initialRows = initialEntry?.activities?.length
-    ? dbActivitiesToRows(initialEntry.activities)
-    : [{ id: 0, type: "", subtype: "", quantity: "" }];
+  const [rows, setRows] = useState([{ id: 0, type: "", subtype: "", quantity: "" }]);
+  const [nextId, setNextId] = useState(1);
+  const [submitted, setSubmitted] = useState(false);
 
-  const [rows, setRows] = useState(initialRows);
-  const [nextId, setNextId] = useState(initialRows.length);
-  const [submitted, setSubmitted] = useState(!!initialEntry?.activities?.length);
+  useEffect(() => {
+    if (loading) return;
+    if (initialEntry?.activities?.length) {
+      const r = dbActivitiesToRows(initialEntry.activities);
+      setRows(r);
+      setNextId(r.length);
+      setSubmitted(true);
+    } else {
+      setRows([{ id: 0, type: "", subtype: "", quantity: "" }]);
+      setNextId(1);
+      setSubmitted(false);
+    }
+  }, [initialEntry, loading]);
 
   const updateRow = (updatedRow) => setRows(rows.map(r => r.id === updatedRow.id ? updatedRow : r));
   const addRow = () => { setRows([...rows, { id: nextId, type: "", subtype: "", quantity: "" }]); setNextId(nextId + 1); };

@@ -13,8 +13,6 @@ export default function Home() {
   const supabase = createClient(); 
   
   supabase.auth.getSession().then(({ data: { session } }) => {
-    console.log("session:", session);
-    console.log("userId:", session?.user?.id);
     
     if (!session) {
           router.push("/auth");

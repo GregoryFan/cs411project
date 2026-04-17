@@ -40,23 +40,31 @@ export async function GET(req) {
 
   if (!userId) return NextResponse.json({ error: 'userId is required' }, { status: 400 })
 
-  const now = new Date()
+  const anchor = date ? new Date(date + "T12:00:00") : new Date();
   let startDate, endDate
 
-  if (date) {
-    // specific date — used for loading a day's entry
-    startDate = new Date(date)
-    startDate.setHours(0, 0, 0, 0)
-    endDate = new Date(date)
-    endDate.setHours(23, 59, 59, 999)
+  if (date && !range) {
+    // Specific date — used for loading a single day's entry
+    startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
   } else if (range === 'week') {
-    startDate = new Date(now); startDate.setDate(now.getDate() - 7); endDate = now
+    const dayOfWeek = (anchor.getDay() + 6) % 7; // Mon = 0
+    const monday = new Date(anchor);
+    monday.setDate(anchor.getDate() - dayOfWeek);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    startDate = monday;
+    endDate = sunday;
   } else if (range === 'month') {
-    startDate = new Date(now); startDate.setMonth(now.getMonth() - 1); endDate = now
+    startDate = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+    endDate = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0, 23, 59, 59);
   } else if (range === 'year') {
-    startDate = new Date(now); startDate.setFullYear(now.getFullYear() - 1); endDate = now
+    startDate = new Date(anchor.getFullYear(), 0, 1);
+    endDate = new Date(anchor.getFullYear(), 11, 31, 23, 59, 59);
   } else {
-    return NextResponse.json({ error: 'Provide a date or range' }, { status: 400 })
+    return NextResponse.json({ error: 'Provide a date or range' }, { status: 400 });
   }
 
   const entries = await prisma.activityEntry.findMany({
