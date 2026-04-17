@@ -165,9 +165,6 @@ export default function DataEntry({
         const saved = await res.json();
         setSubmitted(true);
 
-        // show confirmation message with calculation
-        setSuccessMessage("Entry saved successfully. Redirecting...");
-
         // update UI state
         onSubmit({ entry: saved, rows });
 
