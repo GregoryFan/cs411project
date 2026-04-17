@@ -1,5 +1,7 @@
 //This file contains the class definitions for the base activities, and all subclasses of activities.
 
+import { Carter_One } from "next/font/google";
+
 
 //This is the base class of activities. 
 //Do NOT use, this is only for inheritance.
@@ -19,8 +21,28 @@ class Food extends Activity{
     }
     
     getCarbonImpact(){
-        //TODO: implement carbon impact calculation based on food type and quantity
-        return 67;
+        //carbon emissions based off of 100g(3.53oz) of food 
+        const factorsPer3_53oz={
+            beef: 15.5,
+            pork: 2.4,
+            chicken: 1.82,
+            fish: 1.34,
+            eggs: 0.53,
+            vegetables: 0.045,
+            fruits: 0.086,
+            dairy: 2.79
+        };
+
+
+        const factor = factorsPer3_53oz[this.foodType?.toLowerCase()] ?? 0;
+        const qty = Number(this.quantity);
+
+        if (isNaN(qty) || qty < 0) return 0;
+
+        return (qty / 3.53) * factor;
+
+
+    
     }
 }
 
@@ -33,8 +55,18 @@ class Transportation extends Activity{
     }
     
     getCarbonImpact(){
-        //TODO: implement carbon impact calculation based on transport type and distance
-        return 67;
+        //basis on 1 mile to kg output
+        const factorsPerMile={
+            car:0.4,
+            bus:0.431,
+            train:0.0771107
+        };
+        const factor = factorsPerMile[this.mode?.toLowerCase()] ?? 0;
+        const dist = Number(this.distance);
+
+        if (isNaN(dist) || dist < 0) return 0;
+
+        return factor * dist;
     }
 }
 
@@ -47,8 +79,21 @@ class Utility extends Activity{
     }
 
     getCarbonImpact(){
-        //TODO: implement carbon impact calculation based on utility type and usage
-        return 67;
+        // electricity: kg per kWh
+        // water: kg per gallon
+        // gas: kg per CCF
+        const factorsByType = {
+            electricity: 0.367,
+            water: 0.0015,
+            gas: 5.5
+        };
+
+        const factor = factorsByType[this.utilityType?.toLowerCase()] ?? 0;
+        const usage = Number(this.usage);
+
+        if (isNaN(usage) || usage < 0) return 0;
+
+        return factor * usage;
     }
 }
 
@@ -57,9 +102,12 @@ const FoodType = {
     BEEF: "beef",
     CHICKEN: "chicken",
     PORK: "pork",
+    EGGS:"eggs",
+    FISH: "fish",
     VEGETABLES: "vegetables",
     FRUITS: "fruits",
     DAIRY: "dairy"
+
 };
 
 const TransportationMode = {

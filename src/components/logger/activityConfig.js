@@ -24,7 +24,11 @@ const ACTIVITY_CONFIG = {
   Utility: {
     icon: "Utility Image",
     subtypes: Object.values(UtilityType),
-    unit: "kWh",
+    units: {
+      electricity: "kWh",
+      water: "gallons",
+      gas: "CCF",
+    },
     build: (subtype, qty) => new Utility(subtype, qty),
   },
 };
