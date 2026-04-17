@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActivityEntry } from "@/classes/activityEntry";
 import {ACTIVITY_CONFIG} from "../activityConfig";

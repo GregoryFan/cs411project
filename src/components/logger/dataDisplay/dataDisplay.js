@@ -6,7 +6,7 @@ export default function DataDisplay({ entry, loading }) {
     <div className={styles.card}>
       <h3 className={styles.title}>
         Estimated Carbon <br />
-        Emitted Today
+        Emitted
       </h3>
 
       <hr className={styles.divider} />
@@ -46,7 +46,7 @@ export default function DataDisplay({ entry, loading }) {
 
           <div className={styles.total}>
             <span>Total:</span>
-            <span>{entry.entry.totalCarbonImpact} kg</span>
+            <span>{entry.entry.totalDayCO2} kg</span>
           </div>
         </>
       )}
