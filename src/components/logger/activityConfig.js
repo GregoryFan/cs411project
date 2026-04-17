@@ -10,19 +10,19 @@ import {
 //Used as configuration for data entry
 const ACTIVITY_CONFIG = {
   Food: {
-    icon: "Food Image",
+    icon: "🍴",
     subtypes: Object.values(FoodType),
     unit: "oz",
     build: (subtype, qty) => new Food(subtype, qty),
   },
   Transportation: {
-    icon: "Car Image",
+    icon: "🚗",
     subtypes: Object.values(TransportationMode),
     unit: "mi",
     build: (subtype, qty) => new Transportation(subtype, qty),
   },
   Utility: {
-    icon: "Utility Image",
+    icon: "🔌",
     subtypes: Object.values(UtilityType),
     units: {
       electricity: "kWh",
