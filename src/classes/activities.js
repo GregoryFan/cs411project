@@ -40,9 +40,6 @@ class Food extends Activity{
         if (isNaN(qty) || qty < 0) return 0;
 
         return (qty / 3.53) * factor;
-
-
-    
     }
 }
 

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import DataEntry from "./dataEntry/dataEntry";
 import DataDisplay from "./dataDisplay/dataDisplay";
 import styles from "./logger.module.css";
@@ -13,6 +14,8 @@ export default function Logger({ userId }) {
 
   useEffect(() => {
     setLoading(true);
+
+    
 
     fetch(`/api/activity?userId=${userId}&date=${date}`)
       .then(r => r.json())
@@ -35,12 +38,47 @@ export default function Logger({ userId }) {
 
   }, [userId, date]);
 
+const handleDateChange = async (newDate) => {
+  // catch requests for dates that should not be modified
+  const today = new Date().toISOString().split("T")[0];
+
+  if (newDate > today) {
+    alert("You attempted to select a future date that has not yet occurred.");
+    return;
+  }
+
+  // existing logic continues below...
+
+  try {
+    const res = await fetch(`/api/activity?userId=${userId}&date=${newDate}`);
+    const entries = await res.json();
+    const existing = entries[0] ?? null;
+
+    if (existing) {
+      const confirmModify = window.confirm(
+        "Data already exists for this date. Do you want to modify your previously inputted data?"
+      );
+
+      if (!confirmModify) {
+        return;
+      }
+
+      alert("Data Logging Modification is not implemented yet.");
+      return;
+    }
+
+    setDate(newDate);
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <div className={styles.container}>
       <div className={styles.entry}>
         <DataEntry
           date={date}
-          onDateChange={setDate}
+          onDateChange={handleDateChange}
           initialEntry={initialEntry}
           onSubmit={setSubmittedEntry}
           userId={userId}
@@ -55,4 +93,7 @@ export default function Logger({ userId }) {
       </div>
     </div>
   );
+
+
+  
 }

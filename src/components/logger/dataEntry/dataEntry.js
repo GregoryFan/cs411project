@@ -165,8 +165,18 @@ export default function DataEntry({
         const saved = await res.json();
         setSubmitted(true);
 
+        // ✅ ADD THIS LINE
+        setSuccessMessage(
+          `Entry saved successfully. Total emissions for ${date}: ${saved.totalDayCO2.toFixed(2)} kg CO2e. Redirecting...`
+        );
+
         // update UI state
         onSubmit({ entry: saved, rows });
+
+        // // optional redirect to the statistics page
+        // setTimeout(() => {
+        //   router.push("/statistics");
+        // }, 1500);
 
     };
 
@@ -180,7 +190,7 @@ export default function DataEntry({
               className={styles.dateInput}
               type="date"
               value={date}
-              onChange={(e) => onDateChange(e.target.value)}  // tells Logger to re-fetch
+              onChange={(e) => onDateChange(e.target.value)}
             />
           </label>
         </div>
