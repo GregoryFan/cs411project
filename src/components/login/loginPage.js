@@ -12,11 +12,20 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   const [error, setError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    setLoading(true);
     setError(null);
+    setFieldErrors({});
+
+
+    if (!password) {
+      setFieldErrors({ password: "Password is required" });
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await fetch("/api/user/login", {
@@ -51,6 +60,7 @@ export default function LoginPage() {
       router.push("/");
     } catch {
       setError("Login failed.");
+    } finally {
       setLoading(false);
     }
   };
@@ -75,15 +85,26 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="Password"
-              className={styles.input}
+              className={`${styles.input} ${
+                fieldErrors.password ? styles.inputError : ""
+              }`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
+            <p className = {styles.footer}>
+              <span onClick={() => router.push("/forgot-password")}>
+                Forgot your password?
+              </span>
+            </p>
+
+            {fieldErrors.password && (
+              <p className={styles.fieldError}>
+                {fieldErrors.password}
+              </p>
+            )}
 
             {error && (
-              <p style={{ color: "red", fontSize: "0.875rem" }}>
-                {error}
-              </p>
+              <p className={styles.error}>{error}</p>
             )}
 
             <button
@@ -93,9 +114,8 @@ export default function LoginPage() {
             >
               {loading ? "Logging in..." : "Login"}
             </button>
-
+            
             <p className={styles.footer}>
-              Don't have an account?{" "}
               <span onClick={() => router.push("/signup")}>
                 Sign up
               </span>
