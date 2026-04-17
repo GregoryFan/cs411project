@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    setMessage("Password reset email sent! Check your inbox.");
+    setMessage("Password reset email sent if it exists. Check your inbox.");
   };
 
   return (
