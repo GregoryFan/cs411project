@@ -123,12 +123,25 @@ export default function DataEntry({
             alert("Please fill out all fields before submitting.");
             return;
             }
-        if (isNaN(parseFloat(row.quantity)) || parseFloat(row.quantity) <= 0) {
+        if (isNaN(parseFloat(row.quantity)) || parseFloat(row.quantity) < 0) {
             setFormError("Quantity must be a valid positive number.");
             return;
         }   
+
+            const parsedQuantity = parseFloat(row.quantity);
             const config = ACTIVITY_CONFIG[row.type];
             const built = config.build(row.subtype, parseFloat(row.quantity));
+            let maxLimit = config.max;
+
+            if (row.type === "Utility" && config.maxBySubtype) {
+              maxLimit = config.maxBySubtype[row.subtype] || config.max;
+            }
+
+            if (parsedQuantity > maxLimit) {
+              alert(`Value exceeds maximum allowed limit of ${maxLimit}.`);
+              return;
+            }
+            
             activities.push(built);
             activityRows.push(row);
 
@@ -165,10 +178,10 @@ export default function DataEntry({
         const saved = await res.json();
         setSubmitted(true);
 
-        // ✅ ADD THIS LINE
-        setSuccessMessage(
-          `Entry saved successfully. Total emissions for ${date}: ${saved.totalDayCO2.toFixed(2)} kg CO2e. Redirecting...`
-        );
+      
+  alert(
+  `Entry saved successfully.\nTotal emissions for ${date}: ${saved.totalDayCO2.toFixed(2)} kg CO2e.`
+);
 
         // update UI state
         onSubmit({ entry: saved, rows });
@@ -202,11 +215,7 @@ export default function DataEntry({
   </div>
 ) : (
   <>
-    {successMessage && (
-      <p style={{ color: "green", marginBottom: "0.75rem" }}>
-        {successMessage}
-      </p>
-    )}
+
     
     
     
