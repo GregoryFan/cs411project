@@ -2,8 +2,18 @@
 
 import Header from "@/components/header/header";
 import styles from "./statistics.module.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 export default function StatisticsPage() {
   const router = useRouter();
@@ -11,39 +21,52 @@ export default function StatisticsPage() {
   const [range, setRange] = useState("week");
   const [selectedTime, setSelectedTime] = useState("");
 
-let total = 0;
-let highest = 0;
-let lowest = 0;
-let percent = 0;
-let message = "";
+  // 📊 Different datasets for each range
+  const weeklyData = [
+    { date: "Mon", co2: 30 },
+    { date: "Tue", co2: 50 },
+    { date: "Wed", co2: 40 },
+    { date: "Thu", co2: 60 },
+    { date: "Fri", co2: 20 },
+    { date: "Sat", co2: 10 },
+    { date: "Sun", co2: 0 },
+  ];
 
-if (range === "week") {
-  total = 210;
-  highest = 50;
-  lowest = 10;
-  percent = 15;
-  message = "lower";
-} else if (range === "month") {
-  total = 1060;
-  highest = 250;
-  lowest = 180;
-  percent = 8;
-  message = "higher";
-} else if (range === "year") {
-  total = 10900;
-  highest = 3000;
-  lowest = 2500;
-  percent = 12;
-  message = "lower";
-}
+  const monthlyData = [
+    { date: "Week 1", co2: 200 },
+    { date: "Week 2", co2: 250 },
+    { date: "Week 3", co2: 300 },
+    { date: "Week 4", co2: 310 },
+  ];
 
-  if (range === "week") {
-    percent = 15;
-    message = "lower";
-  } else if (range === "month") {
+  const yearlyData = [
+    { date: "Jan", co2: 900 },
+    { date: "Feb", co2: 850 },
+    { date: "Mar", co2: 1000 },
+    { date: "Apr", co2: 1100 },
+    { date: "May", co2: 950 },
+    { date: "Jun", co2: 1200 },
+  ];
+
+  let data = weeklyData;
+  let total = 210;
+  let highest = 50;
+  let lowest = 10;
+  let percent = 15;
+  let message = "lower";
+
+  if (range === "month") {
+    data = monthlyData;
+    total = 1060;
+    highest = 250;
+    lowest = 180;
     percent = 8;
     message = "higher";
   } else if (range === "year") {
+    data = yearlyData;
+    total = 10900;
+    highest = 3000;
+    lowest = 2500;
     percent = 12;
     message = "lower";
   }
@@ -55,6 +78,7 @@ if (range === "week") {
       <div className={styles.container}>
         <div className={styles.card}>
 
+          {/* LEFT SIDE */}
           <div className={styles.left}>
             <h3>Carbon Emission Makeup</h3>
 
@@ -87,11 +111,31 @@ if (range === "week") {
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
             />
+
+            {/* 📈 LINE CHART */}
             <div className={styles.chart}>
-              
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={data}>
+                  <CartesianGrid strokeDasharray="3 3" />
+
+                  <XAxis dataKey="date" />
+                  <YAxis />
+
+                  <Tooltip />
+
+                  <Line
+                    type="monotone"
+                    dataKey="co2"
+                    stroke="#2e7d6b"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
+          {/* RIGHT SIDE */}
           <div className={styles.right}>
             <h2>Summary</h2>
 
