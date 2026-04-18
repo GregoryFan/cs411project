@@ -37,9 +37,31 @@ export async function GET(req) {
   const userId = searchParams.get('userId')
   const date = searchParams.get('date')   // e.g. "2026-04-16"
   const range = searchParams.get('range') // e.g. "week", "month"
+  const start = searchParams.get('start')
+  const end = searchParams.get('end')
 
   if (!userId) return NextResponse.json({ error: 'userId is required' }, { status: 400 })
 
+  if (start && end) {
+    const startDate = new Date(start)
+    const endDate = new Date(end)
+    endDate.setHours(23, 59, 59, 999)
+
+    const entries = await prisma.activityEntry.findMany({
+      where: {
+        userId,
+        date: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      include: { activities: true },
+      orderBy: { date: 'desc' }
+    })
+
+    return NextResponse.json(entries, { status: 200 })
+  }
+    
   const anchor = date ? new Date(date + "T12:00:00") : new Date();
   let startDate, endDate
 
