@@ -61,9 +61,14 @@ function ActivityRow({ row, onChange, onRemove }) {
             if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
             }}
         />
-        {config && <span className={styles.unit}>{config.unit}</span>}
+        {config && (
+          <span className={styles.unit}>
+            {config.units
+              ? (row.subtype ? config.units[row.subtype.toLowerCase()] ?? "" : "")
+              : config.unit}
+          </span>
+        )}
       </div>
-
       {/* Remove button */}
       <button className={styles.removeBtn} onClick={onRemove} aria-label="Remove">✕</button>
       {/* Divider */}
