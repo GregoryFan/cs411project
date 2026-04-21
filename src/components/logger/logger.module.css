@@ -13,3 +13,39 @@
 .display {
   flex: 3;
 }
+
+.toast {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 500;
+  z-index: 1000;
+}
+
+.toastClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 1rem;
+  font-size: 1rem;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.toastClose:hover {
+  opacity: 1;
+}
+
+.success {
+  background-color: #4a9e97;
+  color: white;
+}
+
+.error {
+  background-color: #e05555;
+  color: white;
+}

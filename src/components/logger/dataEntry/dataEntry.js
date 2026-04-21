@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ActivityEntry } from "@/classes/activityEntry";
 import {ACTIVITY_CONFIG} from "../activityConfig";
 import styles from "./dataEntry.module.css"
@@ -62,10 +61,7 @@ function ActivityRow({ row, onChange, onRemove }) {
             if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
             }}
         />
-        {config && (<span className={styles.unit}>{config.units? (row.subtype 
-          ? config.units[row.subtype] : ""): config.unit}
-  </span>
-)}
+        {config && <span className={styles.unit}>{config.unit}</span>}
       </div>
 
       {/* Remove button */}
@@ -87,111 +83,101 @@ export default function DataEntry({
   initialEntry, 
   onSubmit,
    userId,
-   loading
+   loading,
+   onToast
    }) {
 
-  const [rows, setRows] = useState([{ id: 0, type: "", subtype: "", quantity: "" }]);
-  const [nextId, setNextId] = useState(1);
-  const [submitted, setSubmitted] = useState(false);
+  const initialRows = initialEntry?.activities?.length
+    ? dbActivitiesToRows(initialEntry.activities)
+    : [{ id: 0, type: "", subtype: "", quantity: "" }];
 
-  useEffect(() => {
-    if (loading) return;
-    if (initialEntry?.activities?.length) {
-      const r = dbActivitiesToRows(initialEntry.activities);
-      setRows(r);
-      setNextId(r.length);
-      setSubmitted(true);
-    } else {
-      setRows([{ id: 0, type: "", subtype: "", quantity: "" }]);
-      setNextId(1);
-      setSubmitted(false);
-    }
-  }, [initialEntry, loading]);
-  const router = useRouter();
-  const [successMessage, setSuccessMessage] = useState("");
-  
+  const [rows, setRows] = useState(initialRows);
+  const [nextId, setNextId] = useState(initialRows.length);
+  const [hasSubmitted, setHasSubmitted] = useState(!!initialEntry?.activities?.length);
+  const [isEditing, setIsEditing] = useState(false);
+  const [entryId, setEntryId] = useState(initialEntry?.id ?? null);
+
+  const isLocked = hasSubmitted && !isEditing;
+
   const updateRow = (updatedRow) => setRows(rows.map(r => r.id === updatedRow.id ? updatedRow : r));
   const addRow = () => { setRows([...rows, { id: nextId, type: "", subtype: "", quantity: "" }]); setNextId(nextId + 1); };
   const removeRow = (rowId) => setRows(rows.filter(r => r.id !== rowId));
 
+  useEffect(() => {
+    const newRows = initialEntry?.activities?.length
+      ? dbActivitiesToRows(initialEntry.activities)
+      : [{ id: 0, type: "", subtype: "", quantity: "" }];
+    setRows(newRows);
+    setNextId(newRows.length);
+    setHasSubmitted(!!initialEntry?.activities?.length);
+    setIsEditing(false);
+    setEntryId(initialEntry?.id ?? null);
+  }, [initialEntry, date]);
+
   const handleSubmit = async () => {
-  const activities = [];
-  const activityRows = [];
+    const activities = [];
+    const activityRows = [];
 
-  for (const row of rows) {
-        if (!row.type || !row.subtype || !row.quantity) {
-            alert("Please fill out all fields before submitting.");
-            return;
-            }
-        if (isNaN(parseFloat(row.quantity)) || parseFloat(row.quantity) < 0) {
-            setFormError("Quantity must be a valid positive number.");
-            return;
-        }   
+    for (const row of rows) {
+      if (!row.type || !row.subtype || !row.quantity) {
+        onToast("Please fill out all fields before submitting.", "Error");
+        return;
+      }
+      const config = ACTIVITY_CONFIG[row.type];
+      const built = config.build(row.subtype, parseFloat(row.quantity));
+      activities.push(built);
+      activityRows.push(row);
+    }
 
-            const parsedQuantity = parseFloat(row.quantity);
-            const config = ACTIVITY_CONFIG[row.type];
-            const built = config.build(row.subtype, parseFloat(row.quantity));
-            let maxLimit = config.max;
+    const payload = {
+      entryId: entryId,
+      userId,
+      date,
+      activities: activities.map((a, i) => {
+        const row = activityRows[i];
+        const base = { carbonImpact: a.carbonImpact, type: row.type };
 
-            if (row.type === "Utility" && config.maxBySubtype) {
-              maxLimit = config.maxBySubtype[row.subtype] || config.max;
-            }
-
-            if (parsedQuantity > maxLimit) {
-              alert(`Value exceeds maximum allowed limit of ${maxLimit}.`);
-              return;
-            }
-            
-            activities.push(built);
-            activityRows.push(row);
-
-
-        }
-   
-
-        // Map each built activity into the shape your API/schema expects
-        const payload = {
-            userId,
-            date,
-            activities: activities.map((a, i) => {
-            const row = activityRows[i];
-            const base = { carbonImpact: a.carbonImpact, type: row.type };
-
-            if (row.type === "Food")           return { ...base, foodType: row.subtype,      foodQuantity: parseFloat(row.quantity) };
-            if (row.type === "Transportation") return { ...base, transportMode: row.subtype, distance: parseFloat(row.quantity) };
-            if (row.type === "Utility")        return { ...base, utilityType: row.subtype,   consumptionValue: parseFloat(row.quantity) };
-            return base;
-            })
-        };
-
-        const res = await fetch("/api/activity", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-
-        if (!res.ok) {
-            alert("Failed to save entry.");
-            return;
-        }
-
-        const saved = await res.json();
-        setSubmitted(true);
-
-      
-  alert(
-  `Entry saved successfully.\nTotal emissions for ${date}: ${saved.totalDayCO2.toFixed(2)} kg CO2e.`
-);
-
-        // update UI state
-        onSubmit({ entry: saved, rows });
-
-        // // optional redirect to the statistics page
-        // setTimeout(() => {
-        //   router.push("/statistics");
-        // }, 1500);
-
+        if (row.type === "Food")           return { ...base, foodType: row.subtype,      foodQuantity: parseFloat(row.quantity) };
+        if (row.type === "Transportation") return { ...base, transportMode: row.subtype, distance: parseFloat(row.quantity) };
+        if (row.type === "Utility")        return { ...base, utilityType: row.subtype,   consumptionValue: parseFloat(row.quantity) };
+        return base;
+      })
     };
+
+    // Use PUT when updating an existing entry, POST when creating a new one
+    const method = hasSubmitted ? "PUT" : "POST";
+    const res = await fetch("/api/activity", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      onToast(hasSubmitted ? "Failed to update entry." : "Failed to save entry.", "error");
+      return;
+    }
+
+    onToast(hasSubmitted ? "Entry updated!" : "Entry saved!", "success");
+
+    const saved = await res.json();
+    setEntryId(saved.id); 
+    setHasSubmitted(true);
+    setIsEditing(false);
+    onSubmit({ entry: saved, rows });
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    // Restore rows to whatever was last saved
+    const restoredRows = initialEntry?.activities?.length
+      ? dbActivitiesToRows(initialEntry.activities)
+      : [{ id: 0, type: "", subtype: "", quantity: "" }];
+    setRows(restoredRows);
+    setIsEditing(false);
+  };
 
   return (
     <>
@@ -208,54 +194,60 @@ export default function DataEntry({
           </label>
         </div>
 
-       {loading ? (
-    <div className={styles.loadingState}>
-    <div className={styles.loadingSpinner}></div>
-    <span className={styles.loadingText}>Loading activities...</span>
-  </div>
-) : (
-  <>
+        {loading ? (
+          <div className={styles.loadingState}>
+            <div className={styles.loadingSpinner}></div>
+            <span className={styles.loadingText}>Loading activities...</span>
+          </div>
+        ) : (
+          <>
+            <div className={styles.rows}>
+              {rows.map((row) => (
+                <ActivityRow
+                  key={row.id}
+                  row={row}
+                  onChange={updated => updateRow(updated)}
+                  onRemove={() => removeRow(row.id)}
+                />
+              ))}
+            </div>
 
-    
-    
-    
-    <div className={styles.rows}>
-      {rows.map((row) => (
-        <ActivityRow
-          key={row.id}
-          row={row}
-          onChange={updated => updateRow(updated)}
-          onRemove={() => removeRow(row.id)}
-        />
-      ))}
-    </div>
+            {!isLocked && (
+              <div className={styles.addWrap}>
+                <button
+                  className={styles.addBtn}
+                  onClick={addRow}
+                  aria-label="Add activity"
+                >
+                  +
+                </button>
+              </div>
+            )}
 
-    <div className={styles.addWrap}>
-      <button
-        className={styles.addBtn}
-        onClick={addRow}
-        aria-label="Add activity"
-      >
-        +
-      </button>
-    </div>
-
-    <div className={styles.submitWrap}>
-      <button
-        className={styles.submitBtn}
-        onClick={handleSubmit}
-        disabled={submitted}
-        style={{
-          opacity: submitted ? 0.5 : 1,
-          cursor: submitted ? "not-allowed" : "pointer"
-        }}
-      >
-        {submitted ? "Submitted" : "Submit"}
-      </button>
-    </div>
-    </>
-      )}
-  </div>
+            <div className={styles.submitWrap}>
+              {isLocked ? (
+                <button className={styles.submitBtn} onClick={handleEdit}>
+                  Edit
+                </button>
+              ) : (
+                <>
+                  <button className={styles.submitBtn} onClick={handleSubmit}>
+                    {hasSubmitted ? "Update" : "Submit"}
+                  </button>
+                  {hasSubmitted && (
+                    <button
+                      className={styles.submitBtn}
+                      onClick={handleCancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </>
   );
 }

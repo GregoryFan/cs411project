@@ -100,14 +100,24 @@ export async function GET(req) {
 
 // PUT: update an existing entry (edit or add activities)
 export async function PUT(req) {
-  const { entryId, activities } = await req.json()
-
+  const { entryId, activities } = await req.json();
   if (!entryId || !activities) {
-    return NextResponse.json({ error: 'entryId and activities are required' }, { status: 400 })
+    return NextResponse.json({ error: 'entryId and activities are required' }, { status: 400 });
   }
 
-  const existing = activities.filter(a => a.id)
-  const newOnes = activities.filter(a => !a.id)
+  const existing = activities.filter(a => a.id);
+  const newOnes = activities.filter(a => !a.id);
+
+  // Find what's currently in the DB so we can diff for deletes
+  const currentEntry = await prisma.activityEntry.findUnique({
+    where: { id: entryId },
+    include: { activities: true }
+  });
+
+  const incomingIds = new Set(existing.map(a => a.id));
+  const toDelete = currentEntry.activities
+    .filter(a => !incomingIds.has(a.id))
+    .map(a => a.id);
 
   const updatePromises = existing.map(a =>
     prisma.activity.update({
@@ -123,7 +133,11 @@ export async function PUT(req) {
         consumptionValue: a.consumptionValue ?? null,
       }
     })
-  )
+  );
+
+  const deletePromise = toDelete.length > 0
+    ? prisma.activity.deleteMany({ where: { id: { in: toDelete } } })
+    : null;
 
   const createPromise = newOnes.length > 0
     ? prisma.activityEntry.update({
@@ -144,22 +158,21 @@ export async function PUT(req) {
         },
         include: { activities: true }
       })
-    : null
+    : null;
 
-  await Promise.all(updatePromises)
+  await Promise.all([...updatePromises, deletePromise].filter(Boolean));
+  if (createPromise) await createPromise;
 
-  const entry = createPromise
-    ? await createPromise
-    : await prisma.activityEntry.findUnique({
-        where: { id: entryId },
-        include: { activities: true }
-      })
+  // Fetch fresh after all mutations are done
+  const finalEntry = await prisma.activityEntry.findUnique({
+    where: { id: entryId },
+    include: { activities: true }
+  });
 
-  // recalculate totalDayCO2
   await prisma.activityEntry.update({
     where: { id: entryId },
-    data: { totalDayCO2: entry.activities.reduce((sum, a) => sum + a.carbonImpact, 0) }
-  })
+    data: { totalDayCO2: finalEntry.activities.reduce((sum, a) => sum + a.carbonImpact, 0) }
+  });
 
-  return NextResponse.json(entry, { status: 200 })
+  return NextResponse.json(finalEntry, { status: 200 });
 }
