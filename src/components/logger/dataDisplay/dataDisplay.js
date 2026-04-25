@@ -36,9 +36,9 @@ export default function DataDisplay({ entry, loading }) {
 
                 <div className={styles.carbon}>
                   <span className={styles.amount}>
-                    {entry.entry.activities[i].carbonImpact}
+                    {entry.entry.activities[i].carbonImpact.toFixed(2)}
                   </span>
-                  <span className={styles.unit}>kg</span>
+                  <span className= {styles.unit}> kg </span>
                 </div>
               </div>
             ))}
@@ -46,7 +46,7 @@ export default function DataDisplay({ entry, loading }) {
 
           <div className={styles.total}>
             <span>Total:</span>
-            <span>{entry.entry.totalDayCO2} kg</span>
+            <span>{(entry.entry.totalDayCO2).toFixed(2)} kg</span>
           </div>
         </>
       )}
