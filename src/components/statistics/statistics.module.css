@@ -121,3 +121,90 @@
 .displayLabel {
   color: black;
 }
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.dateWrapper {
+  position: relative;
+}
+
+.dateButton {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #2e6b65;
+  background: white;
+  color: #2e6b65;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.calendarDropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  z-index: 10;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.errorBox {
+  background-color: #ffe5e5;
+  border: 1px solid #ff4d4f;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 15px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.errorContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #a8071a;
+  font-weight: 500;
+}
+
+.errorIcon {
+  font-size: 18px;
+}
+
+.errorActions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.errorActions button {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.errorActions button:last-child {
+  background-color: #999;
+}
+
+.errorActions button:hover {
+  opacity: 0.85;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
