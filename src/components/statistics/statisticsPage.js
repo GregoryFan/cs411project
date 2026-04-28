@@ -378,7 +378,6 @@ export default function StatisticsPage() {
                   </div>
 
                   <div className={styles.errorActions}>
-                    <button onClick={fetchData}>Retry</button>
                     <button onClick={() => setError("")}>Dismiss</button>
                   </div>
                 </div>
