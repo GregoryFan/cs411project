@@ -1,36 +1,20 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Carbon Emission Tracker
 
-## Getting Started
+## This is a project for Boston University course CS411 Software Engineering
+### Developed by Gregory Fan, Bryan Lam, Nicholas Reis, and Benjamin Lin
 
-First, run the development server:
+### Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The Carbon Emission Tracker is a web application meant to allow users to track their own carbon emissions. Currently, three are three main categories each with their own specific types: utilities, transportation and food. Users are able to submit and modify their data and then see visual progress through 
+statistics and compare it to other metrics such as a yearly emission of a cow or plane.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The Carbon Emission Tracker relies on Supabase for its database and authentication system, as well as prisma for additional database API.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### How to Run
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Dependencies on this project depend on `supabase`, `prisma`, `npm`, as well as `react-date-range` and `playwright` through npm.
 
-## Learn More
+Note that an independent environment file is needed for the system functions to work correctly. Specifically, a `DATABASE_URL` and `DIRECT_URL` for the database,  `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the authentication.
 
-To learn more about Next.js, take a look at the following resources:
+To run the project, clone the repository and run `npm run dev` on the root repository. Then, the server is created and is accessible on localhost.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
